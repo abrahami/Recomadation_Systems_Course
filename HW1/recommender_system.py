@@ -87,8 +87,13 @@ class RecommenderSystem(object):
             self._full_pred_matrix = p_u_df.dot(q_i_df.transpose())
             self._b_i = b_i_df
             self._b_u = b_u_df
-            validation_pred = validation_data.apply(lambda x:  self._provide_pred(single_row=x, train_data=train_data), axis=1)
-            eval_obj.evaluate(true_ranks=list(validation_data.Rank), predicted_ranks=list(validation_pred))
+            validation_pred = validation_data.apply(lambda x: self._provide_pred(single_row=x, train_data=train_data),
+                                                         axis=1)
+            if isinstance(validation_pred, pd.DataFrame):
+                validation_pred=list(validation_pred[0])
+            else:
+                validation_pred = list(validation_pred)
+            eval_obj.evaluate(true_ranks=list(validation_data["Rank"]), predicted_ranks=validation_pred)
             duration = (datetime.now() - start_time).seconds
             print "Loop number {}, the RMSE is {}, this loop took us {} minutes".format(i, eval_obj.rmse, duration/60.0)
             if eval_obj.rmse < self.rmse:

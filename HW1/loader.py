@@ -16,12 +16,13 @@ class Loader(object):
     '''
 
     def __init__(self, path):
-        self.valid_categories = ['active', 'beautysvc', 'homeservices', 'hotelstravel',
-                            'nightlife', 'pets', 'restaurants', 'shopping']
+        # currently 'beautysvc' is problematic, should be fixed and then will be added
+        self.valid_categories = ['active', 'homeservices', 'hotelstravel',
+                                 'nightlife', 'pets', 'restaurants', 'shopping']
+        # self.valid_categories = ['pets', 'hotelstravel']
         self.path = path
 
-
-    def __load_single_category(self, train_location, test_location):
+    def __load_single_category(self, train_location, test_location, factor=0):
         '''
         internal function of the base class which loads a specific train/test category from a specific file given
 
@@ -38,8 +39,12 @@ class Loader(object):
         '''
         train_data = pd.read_table(filepath_or_buffer=train_location, sep='::',
                                    header=None, names=['UserID', 'ItemID', 'Rank'], engine='python')
+        train_data["UserID"] += factor
+        train_data["ItemID"] += factor
         test_data = pd.read_table(filepath_or_buffer=test_location, sep='::',
                                    header=None, names=['UserID', 'ItemID', 'Rank'], engine='python')
+        test_data["UserID"] += factor
+        test_data["ItemID"] += factor
 
         return {'train_data': train_data, 'test_data': test_data}
 
@@ -78,8 +83,10 @@ class Loader(object):
             test_location = self.path+"\\"+category + "\\"+category+"_test.txt"
             return self.__load_single_category(train_location=train_location, test_location=test_location)
         else:
-            train_data = pd.DataFrame(columns=['UserID', 'ItemID', 'Rank'])
-            test_data = pd.DataFrame(columns=['UserID', 'ItemID', 'Rank'])
+            train_data = pd.DataFrame(columns=['UserID', 'ItemID', 'Rank'],
+                                      dtype=int)
+            test_data = pd.DataFrame(columns=['UserID', 'ItemID', 'Rank'],
+                                     dtype=int)
             for cat in self.valid_categories:
                 # handling some typo problem in two cases ('training' and 'traning' are being confues in the file names)
                 if cat in ['hotelstravel', 'pets']:
@@ -88,10 +95,14 @@ class Loader(object):
                     train_location = self.path + "\\" + cat + "\\" + cat + "_training.txt"
                 # test file name is OK over all categories
                 test_location = self.path + "\\" + cat + "\\" + cat + "_test.txt"
-                cur_data = self.__load_single_category(train_location=train_location, test_location=test_location)
+
+                factor = (self.valid_categories.index(cat)+1)*100000
+                cur_data = self.__load_single_category(train_location=train_location,
+                                                       test_location=test_location,
+                                                       factor=factor)
                 train_data = pd.concat([train_data, cur_data['train_data']], ignore_index=True)
                 test_data = pd.concat([test_data, cur_data['test_data']], ignore_index=True)
-            return {'train_data': train_data, 'test_data': test_data}
+            return {'train_data': train_data.astype(int), 'test_data': test_data.astype(int)}
 
 
 
