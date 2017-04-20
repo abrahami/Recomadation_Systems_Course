@@ -25,6 +25,9 @@ class RecommenderSystem(object):
     def __init__(self):
         self.rmse = np.inf
         self.final_model = None
+        self._users_avg = None
+        self._items_avg = None
+        self._user_item_avg = None
         self._average = None
         self._users = None
         self._items = None
@@ -32,7 +35,7 @@ class RecommenderSystem(object):
         self._b_u = None
         self._b_i = None
 
-    def _provide_pred(self, single_row, train_data):
+    def _provide_pred(self, single_row):
         existing_user = single_row.UserID in self._users
         existing_item = single_row.ItemID in self._items
         # case we have the userID and the itemID in our training set and we can pull the prediction easily
@@ -42,20 +45,23 @@ class RecommenderSystem(object):
         # case we only have the UserID in our training set (case of a new item to the system) - we'll return the average
         # of ranking for this user
         elif existing_user:
-            return train_data[train_data["UserID"] == single_row.UserID]["Rank"].mean()
+            return self._users_avg.get(single_row.UserID)
         # case we only have the ItemID in our training set (case of a new item to the system) - we'll return the average
         # of ranking for this user
         elif existing_item:
-            return train_data[train_data["ItemID"] == single_row.ItemID]["Rank"].mean()
+            return self._items_avg.get(single_row.ItemID)
         # case we deal with a new user and item - we'll return the average raking over all dataset
         else:
-            return train_data["Rank"].mean()
+            return self._user_item_avg
 
     def train_base_model(self, data, latent_size=20, iterations=100, lamda=0.05, gamma=0.05, verbose=True):
         train_data, validation_data = train_test_split(data, test_size=0.3, random_state=42)
 
         self._users = set(train_data["UserID"])
         self._items = set(train_data["ItemID"])
+        self._users_avg = data.groupby("UserID")["Rank"].mean().to_dict()
+        self._items_avg = data.groupby("ItemID")["Rank"].mean().to_dict()
+        self._user_item_avg = np.average(data["Rank"])
 
         b_u = np.random.uniform(-0.1, 0.1, size=len(self._users))
         b_i = np.random.uniform(-0.1, 0.1, size=len(self._items))
@@ -87,20 +93,29 @@ class RecommenderSystem(object):
             self._full_pred_matrix = p_u_df.dot(q_i_df.transpose())
             self._b_i = b_i_df
             self._b_u = b_u_df
-            validation_pred = validation_data.apply(lambda x: self._provide_pred(single_row=x, train_data=train_data),
-                                                         axis=1)
-            if isinstance(validation_pred, pd.DataFrame):
-                validation_pred=list(validation_pred[0])
-            else:
-                validation_pred = list(validation_pred)
+            #validation_pred = validation_data.apply(lambda x: self._provide_pred(single_row=x), axis=1)
+            validation_pred = self.predict(new_data=validation_data)
+            #if isinstance(validation_pred, pd.DataFrame):
+            #    validation_pred=list(validation_pred[0])
+            #else:
+            #    validation_pred = list(validation_pred)
             eval_obj.evaluate(true_ranks=list(validation_data["Rank"]), predicted_ranks=validation_pred)
             duration = (datetime.now() - start_time).seconds
             print "Loop number {}, the RMSE is {}, this loop took us {} minutes".format(i, eval_obj.rmse, duration/60.0)
             if eval_obj.rmse < self.rmse:
                 self.rmse = eval_obj.rmse
             else:
-                print "RMSE measure wasn't improved and got the value of {}, ending the algorithm".format(eval_obj.rmse)
+                print "RMSE measure wasn't improved and got the value of {}, ending the algorithm." \
+                      "The MAE measure is {}".format(eval_obj.rmse, eval_obj.mae)
                 break
+
+    def predict(self, new_data):
+        prediction = new_data.apply(lambda x: self._provide_pred(single_row=x), axis=1)
+        if isinstance(prediction, pd.DataFrame):
+            return list(prediction[0])
+        else:
+            return list(prediction)
+
 
 
 
