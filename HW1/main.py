@@ -1,6 +1,6 @@
 import loader
 import evaluation
-import recommender_system
+import svd
 import content_based
 import numpy as np
 import pandas as pd
@@ -21,7 +21,7 @@ print "Evaluation has just ended, the RMSE is {}, the MAE is {}".format(eval_obj
 # must be out of the following: active, homeservices, hotelstravel, nightlife, pets, restaurants, shopping, all
 cur_category = 'shopping'
 data_path = "C:\\Users\\abrahami\\Documents\\Private\\Uni\\BGU\\Reco.Systems - Bracha\\HW1\\Yelp"
-model = 'hybrid'  # should be one out of svd/cb/hybrid
+model = 'svd'  # should be one out of svd/cb/hybrid
 # endregion
 
 # region 2. Data load
@@ -43,7 +43,7 @@ print "Loading has just finished, shape of the train dataset is {}," \
 
 # region 3. Modeling
 if model == 'svd':
-    svd_obj = recommender_system.SVDRecommender()
+    svd_obj = svd.SVDRecommender()
     svd_obj.train_base_model(data=train, latent_size=5, iterations=10)
     test_prediction = svd_obj.predict(new_data=test)
 

@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import evaluation
-import recommender_system
+import svd
 import content_based
 import scipy as sc
 
@@ -51,7 +51,7 @@ class HybridModeling(object):
         '''
 
         # svd model
-        svd_obj = recommender_system.SVDRecommender()
+        svd_obj = svd.SVDRecommender()
         svd_obj.train_base_model(data=train_data, latent_size=self.svd_latent_size, iterations=self.svd_iterations)
         self._svd_model = svd_obj
         # CB model
