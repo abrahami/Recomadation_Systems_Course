@@ -4,7 +4,6 @@ __author__ = 'avrahami'
 
 
 class Loader(object):
-
     '''
     a class to load dataset for HW1 in Recom. systems course. Dataset are from 'Yelp' as given with the HW
 

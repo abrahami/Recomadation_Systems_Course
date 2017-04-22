@@ -19,7 +19,7 @@ print "Evaluation has just ended, the RMSE is {}, the MAE is {}".format(eval_obj
 
 # region 1. Configurations (USER MUST DEFINE THESE)
 # must be out of the following: active, homeservices, hotelstravel, nightlife, pets, restaurants, shopping, all
-cur_category = 'shopping'
+cur_category = 'all'
 data_path = "C:\\Users\\abrahami\\Documents\\Private\\Uni\\BGU\\Reco.Systems - Bracha\\HW1\\Yelp"
 model = 'svd'  # should be one out of svd/cb/hybrid
 # endregion
@@ -44,7 +44,7 @@ print "Loading has just finished, shape of the train dataset is {}," \
 # region 3. Modeling
 if model == 'svd':
     svd_obj = svd.SVDRecommender()
-    svd_obj.train_base_model(data=train, latent_size=5, iterations=10)
+    svd_obj.train_base_model(data=train, latent_size=5, iterations=10, gamma=0.01, lamda=0.01)
     test_prediction = svd_obj.predict(new_data=test)
 
 if model == 'cb':
