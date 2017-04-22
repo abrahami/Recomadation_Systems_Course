@@ -19,9 +19,10 @@ class Evaluation(object):
         mean absolute error
     '''
 
-    def __init__(self):
+    def __init__(self, smart_rounding=False):
         self.rmse = None
         self.mae = None
+        self.smart_rounding=smart_rounding
 
     def evaluate(self, true_ranks, predicted_ranks):
         '''
@@ -48,6 +49,12 @@ class Evaluation(object):
         if len(true_ranks) != len(predicted_ranks):
             print "length of the two vectors must be the same, please check again"
             raise Exception("Illegal length of vectors")
+
+        if self.smart_rounding:
+            predicted_ranks = [max(pred, 1) for pred in predicted_ranks]
+            predicted_ranks = [min(pred, 5) for pred in predicted_ranks]
+            #predicted_ranks = [round(pred) for pred in predicted_ranks]
+
         # convert both list to numpy array (if they are not so already) - it will help us with all calculations
         true_ranks = np.array(true_ranks)
         predicted_ranks = np.array(predicted_ranks)
