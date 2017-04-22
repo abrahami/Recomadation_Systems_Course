@@ -22,7 +22,7 @@ def main():
     valid_categories = ['active', 'homeservices', 'hotelstravel', 'nightlife', 'pets', 'restaurants', 'shopping', 'all']
     # region 1. Configurations (USER MUST DEFINE THESE)
     # must be out of the following: active, homeservices, hotelstravel, nightlife, pets, restaurants, shopping, all
-    cur_category = 'all'
+    cur_category = 'pets'
     data_path = "C:\\Users\\abrahami\\Documents\\Private\\Uni\\BGU\\Reco.Systems - Bracha\\HW1\\Yelp"
     model = 'svd'  # should be one out of svd/cb/hybrid
 
